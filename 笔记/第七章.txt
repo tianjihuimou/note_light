@@ -1,0 +1,19 @@
+ 			事件总线Eventbus解析
+
+
+    	1：注册
+		EventBus.getDefault().register(MainActivity.this);
+	2：取消订阅
+		EventBus.getDefault().unregister(this);
+	3：发送
+		EventBus.getDefault().post(new MessageEvent("欢迎关注刘望舒的博客")
+	4:处理
+		 @Subscribe(threadMode = ThreadMode.MAIN)
+    		public void onMoonEvent(MessageEvent messageEvent){
+        		tv_message.setText(messageEvent.getMessage());
+    			}
+		添加@Subscribe
+		指定线程POSTING默认 当前线程。
+		MAIN UI线程
+		BACKGROUND 后台线程
+		ASYNC 子线程。

@@ -1,0 +1,327 @@
+		RXJava函数响应式编程。
+	强调一点观察者这个名字不直接，现在全部改为 订阅者 与 发布者。
+
+	8.1.3不完整定义回调
+		Action1--->Action9
+	8.2 Rxjava的Suject
+		就是 发布者 + 订阅者
+		1： publishSubject  发送订阅之后的数据
+		2： BehaviorSubject 发送最近的数据
+		3：ReplaySubject    发送全部数据
+		4; AsyncSubject     只发最后一个数据
+	8.3 Rxjava操作符入门。
+
+		1：定时发布interval
+		Observable.interval(3, TimeUnit.SECONDS)
+                .subscribe(new Action1<Long>() {
+                    @Override
+                    public void call(Long mlong) {
+                        Log.d(TAG, "interval:" + mlong.intValue());
+                    }
+                });
+		2：替代for循环range
+		Observable.range(0, 5)
+                .subscribe(new Action1<Integer>() {
+                    @Override
+                    public void call(Integer integer) {
+                        Log.d(TAG, "range:" + integer.intValue());
+                    }
+                });
+		3：重复发布repeat
+		Observable.range(0, 3)
+                .repeat(2)
+                .subscribe(new Action1<Integer>() {
+                    @Override
+                    public void call(Integer integer) {
+                        Log.d(TAG, "repeat:" +integer.intValue());
+                    }
+                });
+
+	8.3.2节变换操作符。
+
+		1：map 通过FUNc对象把发布者转换成一个新的发布者，并发布。
+		 final String Host = "http://blog.csdn.net/";
+        		Observable.just("itachi85").map(new Func1<String, String> () {
+           		 @Override
+            		public String call(String s) {
+                	return Host + s;
+           		 }
+        		}).subscribe(new Action1<String>() {
+           		 @Override
+            		public void call(String s) {
+                	Log.d(TAG, "map:" + s);
+            		}
+        		});
+
+		2:flatMap, cast
+		flatmap是将发布者发布的数据集合变成发布者集合。然后将这些数据装进
+		一个发布者者中。
+		cast强制将发射数据转化为指定类型。
+		final String host ="jjjjjjj";
+        	List<String> my = new ArrayList <> ();
+        	my.add("1");
+        	my.add("2");
+        	my.add("3");//可以用concatmap来解决交叉问题。
+        	Observable.from (my).flatMap (new Func1 <String, Observable <?>> () {
+            	@Override
+            	public Observable <?> call(String s) {
+                	return Observable.just (host+s);
+            	}
+        	}).cast (String.class).subscribe (new Action1 <String> () {
+            	@Override
+            	public void call(String s) {
+                	Log.e(TAG,"---"+s);
+            	}
+        	});
+		flatmap的缺点是有可能会导致数据交叉，concatmap能解决此问题。
+
+		3：flatMapIterable可以将数据包装成Iterable,可迭代的
+
+		        Observable.just(1,2,3,4).flatMapIterable (new Func1 <Integer, Iterable <Integer>> () {
+            		@Override
+           		public Iterable <Integer> call(Integer integer) {
+                	List<Integer>mylist = new ArrayList <> ();
+                	mylist.add (integer+1);
+                		return mylist;
+            		}
+        		}).subscribe (new Action1 <Integer> () {
+
+            		@Override
+            		public void call(Integer integer) {
+                		Log.e(TAG,"-----"+integer);
+            		}
+        		});
+		输出2 3 4 5 。
+		4：buffer.缓存。
+	8.3.3过滤操作符
+		1：filter
+		
+	Observable.just(1,2,3,4,5).filter (new Func1 <Integer, Boolean> () {
+            @Override
+            public Boolean call(Integer integer) {
+                return integer>2;
+            }
+        }).subscribe (new Action1 <Integer> () {
+            @Override
+            public void call(Integer integer) {
+                Log.e(TAG,"_______"+integer);
+            }
+        });
+	这样就实现了过滤操作。
+
+	2：distinct 去除重复数据。
+	        Observable.just(1,2,3,4,3,4,2,1)
+                .distinct ().subscribe (new Action1 <Integer> () {
+           	 @Override
+           	 public void call(Integer integer) {
+               	 Log.e(TAG,"____"+integer);
+            		}
+        	});
+	3：skip和take  skip过滤掉前N相，take只取前N相。
+	4：throttleWithTimeOut通过时间来限流。	
+	
+	8.3.4组合操作符
+		1：startwith（）发射的数据前面插入一些数据。
+		2：merge  将多个发布者合并到一个发布者中，数据会交错。
+		3: concat 数据不会交错。
+	8.3.5辅助操作符
+		1：delay 延时发送。
+		2：DO 为发布者生命周期事件的回调。用于调试。
+		3：subscribeOn  observeOn 指定发布者和订阅者的线程。
+		4：timeout 超时结束。
+		5：
+	8.3.7条件操作符和布尔操作符
+		1：布尔操作符all  contains isEmpty
+		2:条件操作符 amb 只发射首先发布的发布者。
+	8.3.8 转换操作符
+		tolist  tomap
+	Rxjava的线程控制
+		1：immediate当前线程
+		2：newThread
+		3：io()
+		4:computation 计算线程。
+		5：mainThread UI线程。
+	Rxjava结合OKhttp应用。
+
+	访问网络只需要一个IP。
+ 	postAsynHttp("59.108.54.37");
+	第二步 创建发布者
+
+	private Observable<String> getObservable(final String ip) {
+        Observable observable = Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                mOkHttpClient = new OkHttpClient();
+                RequestBody formBody = new FormBody.Builder()
+                        .add("ip", ip)
+                        .build();
+                Request request = new Request.Builder()
+                        .url("http://ip.taobao.com/service/getIpInfo.php")
+                        .post(formBody)
+                        .build();
+                Call call = mOkHttpClient.newCall(request);
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        subscriber.onError(new Exception("error"));
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        String str = response.body().string();
+                        subscriber.onNext(str);
+                        subscriber.onCompleted();
+                    }
+                });
+            }
+        });
+        return observable;
+    }
+	然后就是响应式编程
+
+	getObservable(size)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<String>() {
+            @Override
+            public void onCompleted() {
+                Log.d(TAG, "onCompleted");
+            }
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, e.getMessage());
+            }
+            @Override
+            public void onNext(String s) {
+                Log.d(TAG, s);
+                Toast.makeText(getApplicationContext(), "请求成功", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+	RxJava的源码分析。暂时不看了。
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

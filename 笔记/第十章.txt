@@ -1,0 +1,11 @@
+	MVP解析
+
+ 他的核心是present，present作为沟通三界的桥梁。
+
+	分析接口  view， netTask ，网络回调，启动代码ipinfo.
+	present把这四个占全了。
+	维护一个view，一个netTask,实现一个ipinfo,一个网络回调。
+	当然这个view 和task 需要注入到present的
+	present也是需要注入到view里。
+	这样view就可以随意使用这个沟通三界的神。
+	

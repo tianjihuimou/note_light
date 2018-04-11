@@ -1,0 +1,29 @@
+	view体系与自定义view
+1：view的坐标系
+	getX是相对坐标
+	getRawX是绝对坐标。
+2：view的滑动  	1：layout 
+		2：offsetLeftAndright
+ 		3：LayoutParams
+		4:动画
+		5;scroTo
+		6:scroller
+	scroTo与scroBY有区别。
+	((View)getParent()).scrollBy(-offsetX,-offsetY);
+	调用scroller需要重写computeScroll()因为draw会调用这个方法。
+3 view事件的分发机制
+	activity--->viewGroup--->view
+  view 工作流程
+	measure ---> layout--->draw
+	specMode 有AT_MOST和EXACTLY 那个就不考虑了。
+  view的measure流程
+
+  viewgroup 的measure的流程
+  
+4 自定义viewGroup
+ 	1继承viewGroup
+	2实现onlayout
+	3处理滑动冲突
+	4 弹性滑动到其他界面 Scroller
+	5快速滑动到其他界面VelocityTracker
+	6再次触摸屏幕阻止界面继续滑动。

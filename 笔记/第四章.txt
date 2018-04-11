@@ -1,0 +1,53 @@
+     多线程编程
+
+	1:线程的安全的中断 volatile
+		vola只保证有序性
+		不保证原子性。
+		所以volatile一般用于标志位和双重检查模式中。
+	2:线程的同步
+	  Lock和Condition接口为程序设计提供了高度的锁定控制，
+	  大多数只用synchronized 关键字就好了。
+	3：阻塞队列 BlockingQueue
+		核心方法：存入：offer（object）（不阻塞当前线程）
+				put(object) (如果没有空间则此方法阻断，直到有空间)
+			  获取数据：
+				poll(time)取不到就等time
+				take()取首位 取不到就一直等。
+	常见的两种阻塞队列：ArrayBlockingQueue，LinkedBlockQueue。
+		linkedBlockQueue能够高效的处理并发数据，但需要指定容量大小。
+	用阻塞队列实现最简单的生产者消费者模式
+ 	private int quesize =10;
+    	private ArrayBlockingQueue<Integer>queue =
+            		new ArrayBlockingQueue<>(quesize);
+	消费者：
+	public void run(){
+            while(true){
+                try {
+                     queue.take();
+                }catch (InterruptedException e){
+
+                }
+            }
+        }
+	生产者：
+	 public void run(){
+            while(true){
+                try{
+                    queue.put(1);
+                }catch (InterruptedException e){
+
+                }
+            }
+        }
+	4
+	种线程池：主要是线程池维护一个任务队列。
+	FixedThreadExecutor 可重用固定线程数的线程池。
+	CacheThreadpool 根据需要创建的线程池。适用于需要立即处理并且耗时较少的任务。
+	还有一个单线程的线程池和周期性任务的线程池。
+	5异步任务
+
+
+
+
+			
+		

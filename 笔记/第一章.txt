@@ -1,0 +1,41 @@
+1.recyclerview可以是listview可以是GridView很容易实现瀑布流效果。
+  更像是一个框架，然后内容由开发者填充。
+  
+	当他是listview时候默认垂直布局，布局需要指定布局方式。
+	adapter对viewholder进行了封装，需要继承就可以了
+	onbindviewholder需要视图与数据绑定。
+	分割线需要自定义，
+	点击事件需要自定义。
+
+也就是说 所有的东西都拆开了，都需要用户自定义实现，增加了灵活性。
+
+2： cardview
+    提供一个方法：setradius(r) 这样可以把卡片设置为圆角。当然还有其他属性。
+
+3:3种notification暂时不管。用的时候再学很简单。
+
+4：toolbar(重点)就是界面的抬头部分。包含菜单，可以复用。
+	toolbar一般与menu与drawerlayout合用。
+	drawerlayout有两个线性布局，第一个为主，第二个为拖动部分。（明天测试）
+5：运行时权限机制
+	有一个库可以直接调用，也可以自己写，直接抄就好了。
+
+6：用TabLayout实现网易选项卡动态滑动效果（明天继续看继续深入）
+	布局部分：整个是一个drawerlayout 抽出部分是navigation
+		  中间是toolbar加上tablayout构成的。
+		  滑动部分是viewpager.
+	实现部分：添加tablayout
+			TabLayout.addTab(mTabLayout.newTab().setText(titles.get(i)));
+		  添加fragment
+			fragments.add(new ListFragment());
+			fragment的布局就是recycle人view，此时recyclerview需要一个适配器。
+   将tablayout与fragment关联起来
+		mTabLayout.setTabsFromPagerAdapter(mFragmentAdapteradapter)
+   将viewpager与fragment关联起来
+		mViewPager.setAdapter(mFragmentAdapteradapter);
+   将tablayout与viewpager关联起来。
+		mTabLayout.setupWithViewPager(mViewPager);
+
+想学部分：学习框架，学习viewpager参考框架原则，最终自定义框架。
+
+

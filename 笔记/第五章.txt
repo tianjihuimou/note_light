@@ -1,0 +1,149 @@
+	网络编程与网络框架。
+	
+TCP的三次握手与四次挥手：
+	三次握手：client发出链接请求
+		  sever发出ACK
+		  client发出ACK
+		 然后就建立了链接。
+
+	四次挥手：
+		  client发出断开请求
+		  server发出ACK
+		  server发出断开请求
+		  client发出ACK
+		  服务端收到ACK就关闭了
+		  client等一段时间就自己关闭了（报文最大生存时间的两倍）
+	http协议原理：
+	http请求报文：
+		1：http请求行
+		2：请求报头
+		3：请求数据
+	http响应报文：
+		1：状态行
+		2：响应报头
+		3：响应正文
+	抓包工具Fiddler.
+httpclient已经过时了这里主要分析httpURLConnection与OKhttp
+	HTTPURLConnection：
+			首先需要获取HttpURLConnection
+			设置链接超时时间
+			设置读取超时时间
+			设置请求参数
+			添加Header....
+			返回HttpURLConnection
+	第二步：
+	组织请求参数,并将参数写入到输出流
+	List<NameValuePair> postParams = new ArrayList<>();
+        //要传递的参数
+        postParams.add(new BasicNameValuePair("ip", "59.108.54.37"));
+	这里将参数传入到输出流中。
+        UrlConnManager.postParams(mHttpURLConnection.getOutputStream(), postParams);
+
+	接下来就是连接获取数据。
+	mHttpURLConnection.connect();
+        mInputStream = mHttpURLConnection.getInputStream();
+        int code = mHttpURLConnection.getResponseCode();
+        String respose = converStreamToString(mInputStream);
+        Log.d(TAG, "请求状态码:" + code + "\n请求结果:\n" + respose);
+        mInputStream.close();
+	这样就完成了。
+
+解析OKhttp。###############################################################
+	基本步骤是：OKhttpClient，Request，和call，最后调用call的enqueue.
+	post请求就是formbody封装请求参数，并传递给Request.
+		Request request = new Request.Builder()
+                .url("http://ip.taobao.com/service/getIpInfo.php")
+                .post(formBody)
+                .build();
+	异步上传文件：
+		第一步定义文件类型。
+		public static final MediaType MEDIA_TYPE_MARKDOWN = MediaType.parse("text/x-markdown; charset=utf-8");
+		第二步：
+		Request request = new Request.Builder()
+                	.url("https://api.github.com/markdown/raw")
+                	.post(RequestBody.create(MEDIA_TYPE_MARKDOWN, file))
+               	 .build();
+		然后就是调用call了这样就可以上传文件了。
+
+	异步下载文件：就是正常的下载流程 还是调用call，获取文件流，存入本地。
+		Request request = new Request.Builder().url(url).build();
+        	mOkHttpClient.newCall(request).enqueue(new Callback() 
+		然后就是写文件了这里就不再展示了。
+		onResponse(Call call, Response response)
+		InputStream inputStream = response.body().byteStream();
+	设置超时时间和缓存。
+		在创建OKhttpclient的时候可以设置超时时间和缓存
+		OkHttpClient.Builder builder = new OkHttpClient.Builder()
+		.connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .cache(new Cache(sdcache.getAbsoluteFile(), cacheSize));
+		这样就设置完了。这个缓存用处很大。
+	取消请求
+		call.cancel()
+	Okhttp的封装注意两点：
+		1：避免重复代码
+		2：回调结果在UI线程。
+
+源码解析OKhttp：
+	newcall-->RealCall(this, request)-->client.dispatcher().enqueue(new AsyncCall(responseCallback, forWebSocket))
+	会调用这个dispatcher()。
+
+	1：dispatcher的任务调度。
+	这个类维护了以下变量   	最大并发请求数       64
+				每个主机的最大请求数 5
+				一个线程池
+				三个请求队列 	一个正在运行的异步请求队列
+						一个等待运行的异步请求队列
+						一个正在运行的同步请求队列
+	这个线程池适合大量耗时比较少的任务。
+	看他的enqueue（）方法。
+	无论结果如何都会把这个任务移除队列，然后从队列里取出下一个任务执行。
+
+	2：缓存策略
+	看一下sendRequest。
+	第一步
+		网络请求的同时会读取所有的缓存。
+
+	第二步获取结果分三类：
+			1：网络不可用，且缓存过期，返回错误
+			2：网络不可用，缓存可用，返回缓存。
+			3： 网络可用 访问网络。
+	看一下readResponse:
+	检查缓存是否可用，缓存可用直接返回缓存，释放链接。
+	判断条件{
+			通过code判断。
+			通过最后一次更改的时间判断。	
+		}
+	3：失败重连机制。
+	
+
+	OKhttp的复用连接池
+		1：主要维护变量
+			一个线程池
+			一个记录socket的双向队列
+			一个记录链接失败的名单。
+		2：这个队列有几个方法
+			放入链接put
+			取出链接get
+			移除链接
+			移除所有链接
+		3：问题出在get中，当request的地址跟缓存列表的地址完全匹配时
+		   直接返回connection
+	自动回收链接。
+	通过引用计数来自动回收链接。
+	
+
+
+	
+				
+
+			
+
+
+
+
+
+
+
+

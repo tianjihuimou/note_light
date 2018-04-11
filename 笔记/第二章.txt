@@ -1,0 +1,29 @@
+ Material Design
+
+	1.应用Tablayout实现网易滑动效果。
+	   布局是一个
+		APPbarlayout  1:toolbar
+			      2:Tablayout 其中tabMode设置为scrollable.
+
+		viewpager
+
+	实现步骤：创建一个fragment list  fragments.
+		  创建一个FragmentAdapter
+
+		  关联 mViewPager.setAdapter(mFragmentAdapteradapter);
+		  关联 mTabLayout.setupWithViewPager(mViewPager);
+		  关联  mTabLayout.setTabsFromPagerAdapter(mFragmentAdapteradapter);
+	这样就实现了。
+
+	2：实现抽屉界面
+
+		布局分析：
+			整个是一个DrawerLayout
+			尾部添加一个NavigationView
+			NavigationView包含几个重要属性
+			android:layout_gravity="start"
+        		app:headerLayout="@layout/navigation_header"
+        		app:menu="@menu/drawer_view"
+		代码实现：
+			与上面一样。
+	3：coordinatorLayout 可以实现toolbar的隐藏和折叠。
